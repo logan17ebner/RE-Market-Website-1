@@ -295,13 +295,32 @@ function AnalysisContent() {
 
         {/* Data sources footer */}
         <div className="card p-4 mt-4">
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-600">
-            <span className="font-medium text-slate-500">Data Sources:</span>
-            <span>📡 World Bank Open Data API</span>
-            <span>📊 {property.source}</span>
-            <span>🗺️ OpenStreetMap Nominatim</span>
-            {process.env.NEXT_PUBLIC_HAS_FRED && <span>🏦 FRED (St. Louis Fed)</span>}
+          <p className="text-xs font-semibold text-slate-500 mb-3 uppercase tracking-wider">Data Sources</p>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { icon: '📡', label: 'World Bank Open Data', sublabel: 'GDP, inflation, population — updated annually', url: 'https://data.worldbank.org/' },
+              { icon: '🏦', label: 'FRED — St. Louis Fed', sublabel: 'Mortgage rates, housing index — updated weekly', url: 'https://fred.stlouisfed.org/' },
+              { icon: '🗺️', label: 'OpenStreetMap Nominatim', sublabel: 'Global city geocoding — live', url: 'https://nominatim.openstreetmap.org/' },
+              { icon: '🏢', label: 'Knight Frank Global Report', sublabel: 'Commercial benchmarks — 2024', url: 'https://www.knightfrank.com/research' },
+              { icon: '📊', label: 'CBRE Market Outlook', sublabel: 'Industrial & office benchmarks — 2024', url: 'https://www.cbre.com/insights/books/global-real-estate-market-outlook-2024' },
+              { icon: '🌐', label: 'JLL Global Research', sublabel: 'Retail & residential benchmarks — 2024', url: 'https://www.jll.com/en/trends-and-insights/research' },
+            ].map(({ icon, label, sublabel, url }) => (
+              <a
+                key={label}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-start gap-2 px-3 py-2 rounded-lg bg-slate-800/50 border border-slate-700/50 hover:border-blue-500/40 hover:bg-slate-800 transition-all group"
+              >
+                <span className="text-base mt-0.5">{icon}</span>
+                <div>
+                  <p className="text-xs font-medium text-slate-300 group-hover:text-blue-300 transition-colors">{label} ↗</p>
+                  <p className="text-xs text-slate-600">{sublabel}</p>
+                </div>
+              </a>
+            ))}
           </div>
+          <p className="text-xs text-slate-700 mt-3">For informational purposes only. Property price data uses regional benchmarks calibrated by GDP per capita.</p>
         </div>
       </div>
     </main>
