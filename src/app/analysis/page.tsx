@@ -283,8 +283,8 @@ function AnalysisContent() {
                 { label: 'Data Year', value: economic.year.toString() },
               ].map(({ label, value }) => (
                 <div key={label}>
-                  <p className="text-xs text-slate-600 mb-0.5">{label}</p>
-                  <p className="text-sm font-semibold text-white">{value}</p>
+                  <p className="label-upper mb-1">{label}</p>
+                  <p className="text-sm font-semibold" style={{ fontFamily: 'var(--font-playfair)', color: 'var(--text)' }}>{value}</p>
                 </div>
               ))}
             </div>
