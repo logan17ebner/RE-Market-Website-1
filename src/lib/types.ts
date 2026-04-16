@@ -30,6 +30,13 @@ export interface MarketMetric {
   source?: string;
 }
 
+export interface FredData {
+  mortgageRate: number | null;
+  mortgageRateHistory: PriceDataPoint[];
+  homePriceIndex: PriceDataPoint[];
+  housingStarts: PriceDataPoint[];
+}
+
 export interface EconomicIndicators {
   gdpGrowth: number | null;
   gdpPerCapita: number | null;
@@ -39,6 +46,7 @@ export interface EconomicIndicators {
   gdpHistory: PriceDataPoint[];
   country: string;
   year: number;
+  fred?: FredData;
 }
 
 export interface PropertyMarketData {

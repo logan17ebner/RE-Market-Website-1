@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getEconomicIndicators } from '@/lib/apis/worldbank';
 import { getPropertyMarketData } from '@/lib/apis/propertyData';
 import { computeHealthScore, generateInsights } from '@/lib/apis/insights';
+import { getUSHousingData } from '@/lib/apis/fred';
 import { AnalysisReport, CityResult, MarketType, ComparableMarket } from '@/lib/types';
 
 const COMPARABLES_DB: Record<string, ComparableMarket[]> = {
@@ -53,10 +54,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing city or marketType' }, { status: 400 });
     }
 
-    const [economic, property] = await Promise.all([
+    const isUS = city.countryCode === 'US';
+
+    const [economic, fredData] = await Promise.all([
       getEconomicIndicators(city.countryCode.toLowerCase()),
-      getPropertyMarketData(city.countryCode, marketType, null, city.name),
+      isUS ? getUSHousingData() : Promise.resolve(null),
     ]);
+
+    // Attach FRED data to economic indicators for US cities
+    if (fredData) {
+      const mortgageRate = fredData.mortgageRate.length > 0
+        ? fredData.mortgageRate[fredData.mortgageRate.length - 1].value
+        : null;
+      economic.fred = {
+        mortgageRate,
+        mortgageRateHistory: fredData.mortgageRate,
+        homePriceIndex: fredData.homePriceIndex,
+        housingStarts: fredData.housingStarts,
+      };
+    }
 
     // Re-run property with gdpPerCapita for better calibration
     const propertyCalibrated = await getPropertyMarketData(

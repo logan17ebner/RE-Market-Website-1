@@ -237,6 +237,55 @@ function AnalysisContent() {
           </div>
         </div>
 
+        {/* FRED live data — US cities only */}
+        {economic.fred && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-green-400 uppercase tracking-wider">🏦 Live FRED Data (St. Louis Fed)</span>
+              <span className="text-xs text-slate-600">— updated weekly</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <MetricCard
+                label="30-Yr Mortgage Rate"
+                value={economic.fred.mortgageRate !== null ? `${economic.fred.mortgageRate.toFixed(2)}%` : 'N/A'}
+                subtext="Current weekly avg"
+                icon="🏦"
+                highlight
+              />
+              <MetricCard
+                label="Case-Shiller HPI"
+                value={economic.fred.homePriceIndex.length > 0
+                  ? economic.fred.homePriceIndex[economic.fred.homePriceIndex.length - 1].value.toFixed(1)
+                  : 'N/A'}
+                subtext="Home price index"
+                icon="📈"
+              />
+              <MetricCard
+                label="Housing Starts"
+                value={economic.fred.housingStarts.length > 0
+                  ? `${economic.fred.housingStarts[economic.fred.housingStarts.length - 1].value.toFixed(0)}K`
+                  : 'N/A'}
+                subtext="Monthly units (annualized)"
+                icon="🏗️"
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <PriceHistoryChart
+                data={economic.fred.mortgageRateHistory}
+                title="30-Year Mortgage Rate — 52 Weeks (FRED)"
+                unit="%"
+                color="#f59e0b"
+              />
+              <PriceHistoryChart
+                data={economic.fred.homePriceIndex}
+                title="Case-Shiller Home Price Index — 24 Months (FRED)"
+                unit="$"
+                color="#10b981"
+              />
+            </div>
+          </div>
+        )}
+
         {/* Economic data */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <EconomicChart
