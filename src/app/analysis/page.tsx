@@ -23,9 +23,17 @@ export default function AnalysisPage() {
 
 function LoadingScreen() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-6">
-      <div className="w-16 h-16 rounded-full border-4 border-slate-700 border-t-blue-500 animate-spin"/>
-      <p className="text-white font-semibold text-lg">Loading…</p>
+    <div className="min-h-screen flex flex-col items-center justify-center gap-6" style={{ background: 'var(--bg)' }}>
+      <div className="w-10 h-10 rounded-full border-2 animate-spin" style={{ borderColor: 'var(--border)', borderTopColor: 'var(--accent)' }}/>
+      <div className="text-center">
+        <p className="editorial-title text-xl" style={{ color: 'var(--text)' }}>Generating Analysis</p>
+        <p className="text-sm mt-2" style={{ color: 'var(--text-muted)' }}>Fetching live economic & market data…</p>
+      </div>
+      <div className="flex flex-col gap-1.5 text-xs text-center" style={{ color: 'var(--text-muted)' }}>
+        <span>Connecting to World Bank Open Data</span>
+        <span>Loading regional market benchmarks</span>
+        <span>Computing market health score</span>
+      </div>
     </div>
   );
 }
@@ -73,32 +81,14 @@ function AnalysisContent() {
   }
 
   if (loadState === 'loading') {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-6">
-        <div className="relative">
-          <div className="w-16 h-16 rounded-full border-4 border-slate-700 border-t-blue-500 animate-spin"/>
-        </div>
-        <div className="text-center">
-          <p className="text-white font-semibold text-lg">Generating Analysis</p>
-          <p className="text-slate-500 text-sm mt-1">Fetching live economic & market data…</p>
-        </div>
-        <div className="flex flex-col gap-2 text-xs text-slate-600 text-center">
-          <span>📡 Connecting to World Bank Open Data</span>
-          <span>📊 Loading regional market benchmarks</span>
-          <span>🔍 Computing market health score</span>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (loadState === 'error') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-        <span className="text-4xl">⚠️</span>
-        <p className="text-white font-semibold">Failed to generate analysis</p>
-        <button onClick={() => router.push('/')} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition">
-          Try Again
-        </button>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: 'var(--bg)' }}>
+        <p className="editorial-title text-xl" style={{ color: 'var(--text)' }}>Failed to generate analysis</p>
+        <button onClick={() => router.push('/')} className="btn-primary px-6 py-2">Try Again</button>
       </div>
     );
   }
@@ -115,47 +105,37 @@ function AnalysisContent() {
     : null;
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen" style={{ background: 'var(--bg)' }}>
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-slate-900/80 border-b border-slate-800 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => router.push('/')}
-              className="text-slate-400 hover:text-white transition p-1"
-              aria-label="Back"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/>
+      <header className="sticky top-0 z-40 backdrop-blur-md" style={{ background: 'rgba(245,240,232,0.92)', borderBottom: '1px solid var(--border)' }}>
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button onClick={() => router.push('/')} aria-label="Back" style={{ color: 'var(--text-muted)' }} className="hover:opacity-60 transition-opacity">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7"/>
               </svg>
             </button>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-white">{city.name}</span>
-                <span className="text-slate-600">/</span>
-                <span className="text-blue-400 text-sm font-medium">{getMarketTypeLabel(marketType)}</span>
-              </div>
-              <p className="text-xs text-slate-600">{city.displayName}</p>
+              <p className="text-sm font-medium" style={{ fontFamily: 'var(--font-playfair)', color: 'var(--text)' }}>
+                {city.name} — <span style={{ fontStyle: 'italic', color: 'var(--accent)' }}>{getMarketTypeLabel(marketType)}</span>
+              </p>
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{city.displayName}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <span className="hidden sm:flex items-center gap-1.5 text-xs text-slate-500">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"/>
-              Live data as of {new Date(report.generatedAt).toLocaleDateString()}
+            <span className="hidden sm:flex items-center gap-1.5 label-upper">
+              <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#2d7a4f' }}/>
+              Live · {new Date(report.generatedAt).toLocaleDateString()}
             </span>
-            <button
-              onClick={handleExport}
-              disabled={exporting}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600/20 border border-blue-500/30 text-blue-300 hover:bg-blue-600/30 transition text-sm disabled:opacity-50"
-            >
+            <button onClick={handleExport} disabled={exporting} className="btn-outline flex items-center gap-2 px-4 py-2">
               {exporting ? (
-                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
                 </svg>
               ) : (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                 </svg>
               )}
               Export PDF
@@ -165,25 +145,24 @@ function AnalysisContent() {
       </header>
 
       {/* Main content */}
-      <div id="analysis-export" className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <div id="analysis-export" className="max-w-7xl mx-auto px-6 py-10 space-y-8">
 
         {/* Title bar */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6" style={{ borderBottom: '1px solid var(--border)' }}>
           <div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-white">
-              {city.name} <span className="gradient-text">{getMarketTypeLabel(marketType)} Market</span>
+            <p className="label-upper mb-2">Market Analysis Report</p>
+            <h1 className="editorial-title text-4xl sm:text-5xl" style={{ color: 'var(--text)' }}>
+              {city.name}<br />
+              <span className="editorial-italic">{getMarketTypeLabel(marketType)} Market</span>
             </h1>
-            <p className="text-slate-400 mt-1">{city.displayName} · {getMarketTypeLabel(marketType)} Real Estate Analysis</p>
+            <p className="text-sm mt-2" style={{ color: 'var(--text-secondary)' }}>{city.displayName}</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 flex-wrap">
             {property.isEstimated && (
-              <span className="text-xs px-2 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400">
-                ⚠ Benchmark estimates
-              </span>
+              <span className="tag tag-outline">Benchmark estimates</span>
             )}
-            <span className="text-xs px-2 py-1 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400">
-              World Bank: {economic.year}
-            </span>
+            <span className="tag tag-outline">World Bank {economic.year}</span>
+            <span className="tag tag-accent">Live Data</span>
           </div>
         </div>
 
@@ -240,9 +219,9 @@ function AnalysisContent() {
         {/* FRED live data — US cities only */}
         {economic.fred && (
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-green-400 uppercase tracking-wider">🏦 Live FRED Data (St. Louis Fed)</span>
-              <span className="text-xs text-slate-600">— updated weekly</span>
+            <div className="flex items-center gap-3">
+              <p className="label-upper">Live FRED Data — St. Louis Fed</p>
+              <span className="tag tag-accent" style={{ fontSize: '0.6rem' }}>Updated Weekly</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <MetricCard
@@ -274,13 +253,13 @@ function AnalysisContent() {
                 data={economic.fred.mortgageRateHistory}
                 title="30-Year Mortgage Rate — 52 Weeks (FRED)"
                 unit="%"
-                color="#f59e0b"
+                color="#8B1C13"
               />
               <PriceHistoryChart
                 data={economic.fred.homePriceIndex}
                 title="Case-Shiller Home Price Index — 24 Months (FRED)"
                 unit="$"
-                color="#10b981"
+                color="#1a1514"
               />
             </div>
           </div>
@@ -293,7 +272,7 @@ function AnalysisContent() {
             title="GDP Growth Rate (% YoY)"
           />
           <div className="card p-6 flex flex-col gap-4">
-            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Country Economic Profile</h3>
+            <p className="label-upper">Country Economic Profile</p>
             <div className="grid grid-cols-2 gap-4">
               {[
                 { label: 'Country', value: city.country },
@@ -309,8 +288,8 @@ function AnalysisContent() {
                 </div>
               ))}
             </div>
-            <div className="mt-2 pt-4 border-t border-slate-800">
-              <p className="text-xs text-slate-600">Source: World Bank Open Data API</p>
+            <div className="mt-2 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
+              <p className="label-upper">Source: World Bank Open Data API</p>
             </div>
           </div>
         </div>

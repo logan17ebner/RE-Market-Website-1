@@ -1,50 +1,143 @@
 @import "tailwindcss";
 
 :root {
-  --background: #070d1a;
-  --foreground: #e8eaf6;
-  --card: #0d1528;
-  --card-border: rgba(255, 255, 255, 0.07);
-  --accent-blue: #3b82f6;
-  --accent-purple: #8b5cf6;
-  --accent-green: #10b981;
+  --bg: #F5F0E8;
+  --bg-card: #FFFFFF;
+  --text: #1a1514;
+  --text-secondary: #6b6560;
+  --text-muted: #a09890;
+  --accent: #8B1C13;
+  --accent-light: #a82219;
+  --border: rgba(26, 21, 20, 0.1);
+  --border-strong: rgba(26, 21, 20, 0.18);
 }
+
+* { box-sizing: border-box; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-weight: 300;
+  letter-spacing: 0.01em;
 }
 
-.glass {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--card-border);
-  backdrop-filter: blur(16px);
+/* ── Typography ── */
+.font-serif { font-family: var(--font-playfair), Georgia, serif; }
+
+h1, h2, h3 { font-family: var(--font-playfair), Georgia, serif; }
+
+.editorial-title {
+  font-family: var(--font-playfair), Georgia, serif;
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
 }
 
+.editorial-italic {
+  font-family: var(--font-playfair), Georgia, serif;
+  font-style: italic;
+  color: var(--accent);
+}
+
+.label-upper {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ── Cards ── */
 .card {
-  background: var(--card);
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-}
-
-.gradient-text {
-  background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #34d399 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
 }
 
 .card-hover {
-  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 .card-hover:hover {
-  transform: translateY(-2px);
-  border-color: rgba(96, 165, 250, 0.3);
-  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.08);
+  box-shadow: 0 4px 24px rgba(26,21,20,0.08);
+  border-color: var(--border-strong);
 }
 
-/* Custom scrollbar */
+/* ── Tag / pill ── */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 2px;
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tag-accent {
+  background: var(--accent);
+  color: #fff;
+}
+
+.tag-outline {
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
+  background: transparent;
+}
+
+/* ── Divider ── */
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Inputs ── */
+input[type="text"] {
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+  color: var(--text);
+  font-family: var(--font-inter), sans-serif;
+  font-weight: 300;
+}
+input[type="text"]::placeholder { color: var(--text-muted); }
+input[type="text"]:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(139,28,19,0.08);
+}
+
+/* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+
+/* ── Button ── */
+.btn-primary {
+  background: var(--text);
+  color: var(--bg);
+  border: none;
+  border-radius: 3px;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+.btn-primary:hover { background: var(--accent); }
+.btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.btn-outline {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); }

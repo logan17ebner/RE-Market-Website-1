@@ -1,26 +1,28 @@
 interface Props {
   label: string;
-  value: string;
+  value: string | number;
   change?: number | null;
   subtext?: string;
   icon?: string;
   highlight?: boolean;
 }
 
-export default function MetricCard({ label, value, change, subtext, icon, highlight }: Props) {
+export default function MetricCard({ label, value, change, subtext, highlight }: Props) {
   return (
-    <div className={`card p-5 card-hover flex flex-col gap-2 ${highlight ? 'border-blue-500/30 bg-blue-500/5' : ''}`}>
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">{label}</span>
-        {icon && <span className="text-lg">{icon}</span>}
-      </div>
-      <div className="text-2xl font-bold text-white">{value}</div>
+    <div
+      className="card card-hover p-5 flex flex-col gap-2"
+      style={highlight ? { borderColor: 'var(--accent)', borderLeftWidth: 3 } : {}}
+    >
+      <p className="label-upper">{label}</p>
+      <p className="text-2xl font-semibold" style={{ fontFamily: 'var(--font-playfair)', color: 'var(--text)' }}>
+        {value}
+      </p>
       {change !== undefined && change !== null && (
-        <div className={`text-sm font-medium ${change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+        <p className="text-xs font-medium" style={{ color: change >= 0 ? '#2d7a4f' : '#b91c1c' }}>
           {change >= 0 ? '↑' : '↓'} {Math.abs(change).toFixed(1)}% YoY
-        </div>
+        </p>
       )}
-      {subtext && <div className="text-xs text-slate-500">{subtext}</div>}
+      {subtext && <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{subtext}</p>}
     </div>
   );
 }

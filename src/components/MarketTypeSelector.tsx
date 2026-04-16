@@ -3,15 +3,6 @@
 import { MarketType } from '@/lib/types';
 import { getMarketTypeDescription, getMarketTypeLabel } from '@/lib/utils';
 
-const MARKET_ICONS: Record<MarketType, string> = {
-  residential: '🏠',
-  commercial: '🏢',
-  retail: '🏪',
-  industrial: '🏭',
-  office: '💼',
-  land: '🌍',
-};
-
 const MARKET_TYPES: MarketType[] = ['residential', 'commercial', 'retail', 'industrial', 'office', 'land'];
 
 interface Props {
@@ -21,24 +12,30 @@ interface Props {
 
 export default function MarketTypeSelector({ selected, onChange }: Props) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
       {MARKET_TYPES.map((type) => {
         const active = type === selected;
         return (
           <button
             key={type}
             onClick={() => onChange(type)}
-            className={`flex flex-col items-start gap-1 p-4 rounded-xl border transition-all duration-150 text-left ${
-              active
-                ? 'bg-blue-600/20 border-blue-500 shadow-[0_0_16px_rgba(59,130,246,0.15)]'
-                : 'bg-slate-800/40 border-slate-700 hover:border-slate-500 hover:bg-slate-800/60'
-            }`}
+            className="flex flex-col items-start gap-1.5 p-4 text-left transition-all duration-150"
+            style={{
+              background: active ? 'var(--text)' : 'var(--bg)',
+              border: `1px solid ${active ? 'var(--text)' : 'var(--border-strong)'}`,
+              borderRadius: 3,
+            }}
           >
-            <span className="text-2xl">{MARKET_ICONS[type]}</span>
-            <span className={`text-sm font-semibold ${active ? 'text-blue-300' : 'text-slate-200'}`}>
+            <span className="text-xs font-semibold" style={{
+              fontFamily: 'var(--font-playfair)',
+              color: active ? 'var(--bg)' : 'var(--text)',
+              letterSpacing: '0.01em',
+            }}>
               {getMarketTypeLabel(type)}
             </span>
-            <span className="text-xs text-slate-500 leading-tight">{getMarketTypeDescription(type)}</span>
+            <span className="text-xs leading-tight" style={{ color: active ? 'rgba(245,240,232,0.6)' : 'var(--text-muted)' }}>
+              {getMarketTypeDescription(type)}
+            </span>
           </button>
         );
       })}
