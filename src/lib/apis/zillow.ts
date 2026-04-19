@@ -87,27 +87,30 @@ function findMetro(rows: MetroRow[], cityName: string, stateName: string, neares
   const sn = stateName.toLowerCase().trim();
   const nm = (nearestMajor ?? '').toLowerCase().trim();
 
-  // 1. City name is the start of RegionName, same state
+  // 1. City name starts RegionName, same state
+  if (sn) {
+    for (const r of rows) {
+      if (r.regionName.toLowerCase().startsWith(cn + ',') && r.stateName.toLowerCase() === sn) return r;
+    }
+  }
+
+  // 2. City name starts RegionName, any state (handles missing state or multi-state metros)
   for (const r of rows) {
-    const rn = r.regionName.toLowerCase();
-    if (rn.startsWith(cn + ',') && r.stateName.toLowerCase() === sn) return r;
+    if (r.regionName.toLowerCase().startsWith(cn + ',')) return r;
   }
 
-  // 2. Nearest major city is the start of RegionName, same state
-  if (nm) {
+  // 3. Nearest major city match — same state only (for suburbs near a known metro)
+  if (nm && sn) {
     for (const r of rows) {
-      const rn = r.regionName.toLowerCase();
-      if (rn.startsWith(nm + ',') && r.stateName.toLowerCase() === sn) return r;
-    }
-    // Same nearest major, any state (for cities near a metro that spans states)
-    for (const r of rows) {
-      if (r.regionName.toLowerCase().startsWith(nm + ',')) return r;
+      if (r.regionName.toLowerCase().startsWith(nm + ',') && r.stateName.toLowerCase() === sn) return r;
     }
   }
 
-  // 3. Largest metro (lowest SizeRank) in same state
-  const stateRows = rows.filter(r => r.stateName.toLowerCase() === sn);
-  if (stateRows.length > 0) return stateRows.sort((a, b) => a.sizeRank - b.sizeRank)[0];
+  // 4. Largest metro (lowest SizeRank) in same state
+  if (sn) {
+    const stateRows = rows.filter(r => r.stateName.toLowerCase() === sn);
+    if (stateRows.length > 0) return stateRows.sort((a, b) => a.sizeRank - b.sizeRank)[0];
+  }
 
   return null;
 }
