@@ -3,7 +3,7 @@ import { CityResult } from '../types';
 export async function searchCities(query: string): Promise<CityResult[]> {
   if (!query || query.length < 2) return [];
 
-  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&extratags=1&limit=8&featuretype=city&accept-language=en`;
+  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&extratags=1&limit=8&featuretype=city&accept-language=en&countrycodes=us`;
 
   const res = await fetch(url, {
     headers: { 'User-Agent': 'REMarketAnalysis/1.0' },
@@ -37,9 +37,7 @@ export async function searchCities(query: string): Promise<CityResult[]> {
     if (seen.has(key)) continue;
     seen.add(key);
 
-    const displayName = state
-      ? `${cityName}, ${state}, ${country}`
-      : `${cityName}, ${country}`;
+    const displayName = state ? `${cityName}, ${state}` : cityName;
 
     // Parse population from extratags if available
     const population = extra.population ? parseInt(extra.population, 10) : undefined;

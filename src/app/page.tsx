@@ -32,7 +32,7 @@ export default function HomePage() {
           RE Market Intelligence
         </span>
         <nav className="flex items-center gap-8 text-xs" style={{ color: 'var(--text-muted)', letterSpacing: '0.1em' }}>
-          <span className="uppercase hidden sm:block">Global Coverage</span>
+          <span className="uppercase hidden sm:block">All 50 States</span>
           <span className="uppercase hidden sm:block">6 Market Types</span>
           <span className="tag tag-accent">Live Data</span>
         </nav>
@@ -48,12 +48,12 @@ export default function HomePage() {
           {/* Headline */}
           <h1 className="editorial-title text-5xl sm:text-6xl text-center mb-6" style={{ color: 'var(--text)' }}>
             Real Estate Intelligence<br />
-            for <span className="editorial-italic">Any City on Earth</span>
+            for <span className="editorial-italic">Any U.S. City</span>
           </h1>
 
           <p className="text-center text-sm leading-relaxed mb-12 max-w-lg mx-auto" style={{ color: 'var(--text-secondary)' }}>
-            Generate a comprehensive market analysis package using live World Bank economic data,
-            regional benchmarks, and AI-powered insights — in seconds.
+            Generate a market analysis using live Zillow home values and rents,
+            FRED mortgage data, and US economic indicators — in seconds.
           </p>
 
           {/* Form card */}
@@ -96,7 +96,7 @@ export default function HomePage() {
 
           {/* Feature strip */}
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-10">
-            {['Price Trend Charts', 'World Bank Live Data', 'Market Health Score', 'Yield Analysis', 'PDF Export'].map((f) => (
+            {['Zillow Home Values', 'FRED Mortgage Data', 'Rental Yield', 'Comparable Markets', 'PDF Export'].map((f) => (
               <span key={f} className="label-upper">{f}</span>
             ))}
           </div>
@@ -106,7 +106,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="px-8 py-5 text-center" style={{ borderTop: '1px solid var(--border)' }}>
         <p className="text-xs" style={{ color: 'var(--text-muted)', letterSpacing: '0.04em' }}>
-          Data: World Bank Open Data · FRED (St. Louis Fed) · OpenStreetMap · Knight Frank / CBRE / JLL 2024 — For informational purposes only
+          Data: Zillow Research (ZHVI/ZORI) · FRED St. Louis Fed · World Bank · OpenStreetMap — For informational purposes only
         </p>
       </footer>
     </main>

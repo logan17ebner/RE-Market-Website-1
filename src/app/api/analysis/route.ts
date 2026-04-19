@@ -222,36 +222,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing city or marketType' }, { status: 400 });
     }
 
-    const isUS = city.countryCode === 'US';
-
     const { cityClass, nearestMajor } = classifyCity(city.lat, city.lon, city.population ?? null, null);
 
     const [economic, fredData, zillowData] = await Promise.all([
-      getEconomicIndicators(city.countryCode.toLowerCase()),
-      isUS ? getUSHousingData() : Promise.resolve(null),
-      isUS ? getZillowData(city.name, city.state ?? '', nearestMajor ?? undefined) : Promise.resolve(null),
+      getEconomicIndicators('us'),
+      getUSHousingData(),
+      getZillowData(city.name, city.state ?? '', nearestMajor ?? undefined),
     ]);
 
-    // Attach FRED data to economic indicators for US cities
-    if (fredData) {
-      const mortgageRate = fredData.mortgageRate.length > 0
-        ? fredData.mortgageRate[fredData.mortgageRate.length - 1].value
-        : null;
-      economic.fred = {
-        mortgageRate,
-        mortgageRateHistory: fredData.mortgageRate,
-        homePriceIndex: fredData.homePriceIndex,
-        housingStarts: fredData.housingStarts,
-      };
-    }
+    const mortgageRate = fredData.mortgageRate.length > 0
+      ? fredData.mortgageRate[fredData.mortgageRate.length - 1].value
+      : null;
+    economic.fred = {
+      mortgageRate,
+      mortgageRateHistory: fredData.mortgageRate,
+      homePriceIndex: fredData.homePriceIndex,
+      housingStarts: fredData.housingStarts,
+    };
 
-    // Property data: start with GDP-calibrated baseline, then overlay real Zillow data
-    const propertyCalibrated = await getPropertyMarketData(
-      city.countryCode,
-      marketType,
-      economic.gdpPerCapita,
-      city.name
-    );
+    const propertyCalibrated = await getPropertyMarketData(marketType);
 
     const property: PropertyMarketData = { ...propertyCalibrated };
 
