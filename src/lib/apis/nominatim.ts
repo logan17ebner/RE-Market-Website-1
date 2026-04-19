@@ -3,7 +3,7 @@ import { CityResult } from '../types';
 export async function searchCities(query: string): Promise<CityResult[]> {
   if (!query || query.length < 2) return [];
 
-  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=8&featuretype=city&accept-language=en`;
+  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&extratags=1&limit=8&featuretype=city&accept-language=en`;
 
   const res = await fetch(url, {
     headers: { 'User-Agent': 'REMarketAnalysis/1.0' },
@@ -19,6 +19,8 @@ export async function searchCities(query: string): Promise<CityResult[]> {
 
   for (const item of data) {
     const address = item.address || {};
+    const extra = item.extratags || {};
+
     const cityName =
       address.city ||
       address.town ||
@@ -39,6 +41,9 @@ export async function searchCities(query: string): Promise<CityResult[]> {
       ? `${cityName}, ${state}, ${country}`
       : `${cityName}, ${country}`;
 
+    // Parse population from extratags if available
+    const population = extra.population ? parseInt(extra.population, 10) : undefined;
+
     results.push({
       id: item.place_id?.toString() || key,
       name: cityName,
@@ -48,6 +53,7 @@ export async function searchCities(query: string): Promise<CityResult[]> {
       lat: parseFloat(item.lat),
       lon: parseFloat(item.lon),
       state,
+      population: isNaN(population as number) ? undefined : population,
     });
   }
 
