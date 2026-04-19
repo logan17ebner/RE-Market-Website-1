@@ -1,11 +1,10 @@
 'use client';
 
-import { Suspense, useEffect, useState, useRef } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AnalysisReport, CityResult, MarketType } from '@/lib/types';
 import { formatCurrency, formatNumber, formatPercent, getMarketTypeLabel } from '@/lib/utils';
 import MetricCard from '@/components/analysis/MetricCard';
-import HealthScoreGauge from '@/components/analysis/HealthScoreGauge';
 import InsightsPanel from '@/components/analysis/InsightsPanel';
 import PriceHistoryChart from '@/components/charts/PriceHistoryChart';
 import EconomicChart from '@/components/charts/EconomicChart';
@@ -30,9 +29,49 @@ function LoadingScreen() {
         <p className="text-sm mt-2" style={{ color: 'var(--text-muted)' }}>Fetching live market data…</p>
       </div>
       <div className="flex flex-col gap-1.5 text-xs text-center" style={{ color: 'var(--text-muted)' }}>
-        <span>Connecting to Zillow Research (home values &amp; rents)</span>
-        <span>Loading FRED mortgage &amp; housing data</span>
-        <span>Computing comparable market peers</span>
+        <span>Zillow Research — home values &amp; rents</span>
+        <span>FRED — mortgage rates &amp; housing indicators</span>
+        <span>World Bank — economic indicators</span>
+      </div>
+    </div>
+  );
+}
+
+function ConfidenceBanner({ hasZillow, isUS, metro }: { hasZillow: boolean; isUS: boolean; metro?: string }) {
+  if (hasZillow) {
+    return (
+      <div className="flex items-start gap-3 rounded-lg px-4 py-3" style={{ background: 'rgba(45,122,79,0.08)', border: '1px solid rgba(45,122,79,0.2)' }}>
+        <span className="w-2 h-2 rounded-full mt-1 flex-shrink-0" style={{ background: '#2d7a4f' }}/>
+        <div>
+          <p className="text-sm font-semibold" style={{ color: '#2d7a4f' }}>Live data — Zillow Research + FRED</p>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+            Home values and rents sourced directly from Zillow ZHVI/ZORI for the <strong>{metro}</strong> metro. Mortgage data from FRED (St. Louis Fed). Updated monthly / weekly.
+          </p>
+        </div>
+      </div>
+    );
+  }
+  if (isUS) {
+    return (
+      <div className="flex items-start gap-3 rounded-lg px-4 py-3" style={{ background: 'rgba(180,120,0,0.08)', border: '1px solid rgba(180,120,0,0.2)' }}>
+        <span className="w-2 h-2 rounded-full mt-1 flex-shrink-0" style={{ background: '#b47800' }}/>
+        <div>
+          <p className="text-sm font-semibold" style={{ color: '#b47800' }}>Partial live data — FRED live, property values estimated</p>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+            Mortgage and credit data from FRED (live). Property price benchmarks are regional industry estimates from Knight Frank / CBRE / JLL 2024 — not localized to this market.
+          </p>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-start gap-3 rounded-lg px-4 py-3" style={{ background: 'rgba(100,100,100,0.06)', border: '1px solid var(--border)' }}>
+      <span className="w-2 h-2 rounded-full mt-1 flex-shrink-0" style={{ background: 'var(--text-muted)' }}/>
+      <div>
+        <p className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>Regional benchmark data — World Bank + industry estimates</p>
+        <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+          Economic indicators from World Bank Open Data (authoritative, annual). Property values are regional benchmarks from Knight Frank / CBRE / JLL 2024 — directionally accurate but not localized.
+        </p>
       </div>
     </div>
   );
@@ -44,7 +83,6 @@ function AnalysisContent() {
   const [report, setReport] = useState<AnalysisReport | null>(null);
   const [loadState, setLoadState] = useState<LoadState>('idle');
   const [exporting, setExporting] = useState(false);
-  const exportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const cityStr = params.get('city');
@@ -56,7 +94,6 @@ function AnalysisContent() {
     catch { router.push('/'); return; }
 
     setLoadState('loading');
-
     fetch('/api/analysis', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -81,7 +118,6 @@ function AnalysisContent() {
   }
 
   if (loadState === 'loading') return <LoadingScreen />;
-
   if (loadState === 'error') {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: 'var(--bg)' }}>
@@ -90,27 +126,23 @@ function AnalysisContent() {
       </div>
     );
   }
-
   if (!report) return null;
 
-  const { config, economic, property, healthScore, comparables, insights, risks, opportunities } = report;
+  const { config, economic, property, comparables, insights, risks, opportunities } = report;
   const { city, marketType } = config;
 
-  const hist = property.priceHistory;
-  const priceYoY = property.yoyChange ?? (
-    hist.length >= 13
-      ? ((hist[hist.length - 1].value - hist[hist.length - 13].value) / hist[hist.length - 13].value) * 100
-      : null
-  );
-
   const hasZillow = !!property.metro;
+  const isUS = city.countryCode === 'US';
   const isResidential = marketType === 'residential';
+  const priceYoY = property.yoyChange ?? null;
+  const mortgageRate = economic.fred?.mortgageRate ?? null;
+  const fredYear = economic.fred?.mortgageRateHistory?.slice(-1)[0]?.period?.slice(0, 7);
 
   return (
     <main className="min-h-screen" style={{ background: 'var(--bg)' }}>
       {/* Sticky header */}
       <header className="sticky top-0 z-40 backdrop-blur-md" style={{ background: 'rgba(245,240,232,0.92)', borderBottom: '1px solid var(--border)' }}>
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button onClick={() => router.push('/')} aria-label="Back" style={{ color: 'var(--text-muted)' }} className="hover:opacity-60 transition-opacity">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -121,232 +153,174 @@ function AnalysisContent() {
               <p className="text-sm font-medium" style={{ fontFamily: 'var(--font-playfair)', color: 'var(--text)' }}>
                 {city.name} — <span style={{ fontStyle: 'italic', color: 'var(--accent)' }}>{getMarketTypeLabel(marketType)}</span>
               </p>
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                {hasZillow ? property.metro : city.displayName}
-              </p>
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{hasZillow ? property.metro : city.displayName}</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="hidden sm:flex items-center gap-1.5 label-upper">
-              <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: '#2d7a4f' }}/>
-              Live · {new Date(report.generatedAt).toLocaleDateString()}
-            </span>
-            <button onClick={handleExport} disabled={exporting} className="btn-outline flex items-center gap-2 px-4 py-2">
-              {exporting ? (
-                <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
-                </svg>
-              ) : (
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                </svg>
-              )}
-              Export PDF
-            </button>
-          </div>
+          <button onClick={handleExport} disabled={exporting} className="btn-outline flex items-center gap-2 px-4 py-2">
+            {exporting
+              ? <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
+              : <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            }
+            Export PDF
+          </button>
         </div>
       </header>
 
-      <div id="analysis-export" className="max-w-7xl mx-auto px-6 py-10 space-y-8">
+      <div id="analysis-export" className="max-w-5xl mx-auto px-6 py-10 space-y-8">
 
-        {/* Title bar */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6" style={{ borderBottom: '1px solid var(--border)' }}>
-          <div>
-            <p className="label-upper mb-2">Market Analysis Report</p>
-            <h1 className="editorial-title text-4xl sm:text-5xl" style={{ color: 'var(--text)' }}>
-              {city.name}<br />
-              <span className="editorial-italic">{getMarketTypeLabel(marketType)} Market</span>
-            </h1>
-            <p className="text-sm mt-2" style={{ color: 'var(--text-secondary)' }}>{city.displayName}</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            {hasZillow && isResidential ? (
-              <span className="tag tag-accent">Live — Zillow Research</span>
-            ) : (
-              <span className="tag tag-outline">Benchmark estimates</span>
-            )}
-            {economic.fred && <span className="tag tag-accent">FRED Live</span>}
-          </div>
+        {/* Title */}
+        <div className="pb-6" style={{ borderBottom: '1px solid var(--border)' }}>
+          <p className="label-upper mb-2">Market Analysis Report</p>
+          <h1 className="editorial-title text-4xl sm:text-5xl" style={{ color: 'var(--text)' }}>
+            {city.name}<br/>
+            <span className="editorial-italic">{getMarketTypeLabel(marketType)} Market</span>
+          </h1>
+          <p className="text-sm mt-2" style={{ color: 'var(--text-secondary)' }}>{city.displayName}</p>
         </div>
 
-        {/* ── SECTION 1: Key RE metrics ─────────────────────────── */}
+        {/* Data confidence banner */}
+        <ConfidenceBanner hasZillow={hasZillow && isResidential} isUS={isUS} metro={property.metro} />
+
+        {/* ── Key metrics — only real, sourced numbers ─── */}
         <div>
-          <p className="label-upper mb-3">Property Market Overview</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <p className="label-upper mb-3">Key Indicators</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {hasZillow && isResidential ? (
               <>
                 <MetricCard
                   label="Median Home Value"
                   value={property.medianPrice ? formatCurrency(property.medianPrice, 'USD', true) : 'N/A'}
                   change={priceYoY}
-                  icon="🏠"
+                  source={`Zillow ZHVI · ${property.lastUpdated?.slice(0, 7)}`}
                   highlight
                 />
                 <MetricCard
-                  label="Avg Price / sqft"
-                  value={property.avgPricePerSqft ? `$${property.avgPricePerSqft}` : 'N/A'}
-                  icon="📐"
-                />
-                <MetricCard
-                  label="YoY Change"
-                  value={priceYoY !== null ? `${priceYoY >= 0 ? '+' : ''}${priceYoY.toFixed(1)}%` : 'N/A'}
-                  icon="📈"
-                />
-                <MetricCard
-                  label="Median Rent / mo"
+                  label="Median Monthly Rent"
                   value={property.medianRent ? `$${property.medianRent.toLocaleString()}` : 'N/A'}
-                  subtext="ZORI — all home types"
-                  icon="🏘️"
+                  source="Zillow ZORI · all home types"
                 />
                 <MetricCard
                   label="Gross Rental Yield"
                   value={property.rentalYield ? `${property.rentalYield.toFixed(1)}%` : 'N/A'}
-                  icon="💰"
+                  source="Calculated: annual rent ÷ home value"
+                />
+                {mortgageRate !== null ? (
+                  <MetricCard
+                    label="30-Yr Mortgage Rate"
+                    value={`${mortgageRate.toFixed(2)}%`}
+                    source={`FRED · ${fredYear ?? 'current'}`}
+                  />
+                ) : (
+                  <MetricCard
+                    label="Price / sqft (est.)"
+                    value={property.avgPricePerSqft ? `$${property.avgPricePerSqft}` : 'N/A'}
+                    source="Derived from ZHVI ÷ 1,600 sqft"
+                  />
+                )}
+              </>
+            ) : isUS ? (
+              <>
+                {mortgageRate !== null && (
+                  <MetricCard
+                    label="30-Yr Mortgage Rate"
+                    value={`${mortgageRate.toFixed(2)}%`}
+                    source={`FRED · ${fredYear ?? 'current'}`}
+                    highlight
+                  />
+                )}
+                <MetricCard
+                  label="Price / sqft (est.)"
+                  value={property.avgPricePerSqft ? `$${property.avgPricePerSqft}` : 'N/A'}
+                  source="Regional benchmark · CBRE/JLL 2024"
                 />
                 <MetricCard
-                  label="Days on Market"
-                  value={property.daysOnMarket ? `${property.daysOnMarket}` : 'N/A'}
-                  subtext="avg listing"
-                  icon="📅"
+                  label="GDP Growth"
+                  value={economic.gdpGrowth !== null ? formatPercent(economic.gdpGrowth) : 'N/A'}
+                  source={`World Bank · ${economic.year}`}
+                />
+                <MetricCard
+                  label="Inflation Rate"
+                  value={economic.inflation !== null ? formatPercent(economic.inflation) : 'N/A'}
+                  source={`World Bank · ${economic.year}`}
                 />
               </>
             ) : (
               <>
                 <MetricCard
-                  label="Avg Price / sqft"
-                  value={property.avgPricePerSqft ? `$${property.avgPricePerSqft}` : 'N/A'}
-                  change={priceYoY}
-                  icon="💰"
+                  label="GDP Per Capita"
+                  value={economic.gdpPerCapita ? formatCurrency(economic.gdpPerCapita, 'USD', true) : 'N/A'}
+                  source={`World Bank · ${economic.year}`}
                   highlight
                 />
                 <MetricCard
-                  label="Median Price"
-                  value={property.medianPrice ? formatCurrency(property.medianPrice, 'USD', true) : 'N/A'}
-                  icon="🏠"
+                  label="GDP Growth"
+                  value={economic.gdpGrowth !== null ? formatPercent(economic.gdpGrowth) : 'N/A'}
+                  source={`World Bank · ${economic.year}`}
                 />
                 <MetricCard
-                  label="Rental Yield"
-                  value={property.rentalYield ? `${property.rentalYield.toFixed(1)}%` : 'N/A'}
-                  icon="📈"
+                  label="Inflation Rate"
+                  value={economic.inflation !== null ? formatPercent(economic.inflation) : 'N/A'}
+                  source={`World Bank · ${economic.year}`}
                 />
                 <MetricCard
-                  label="Vacancy Rate"
-                  value={property.vacancyRate ? `${property.vacancyRate.toFixed(1)}%` : 'N/A'}
-                  icon="🏗️"
-                />
-                <MetricCard
-                  label="Days on Market"
-                  value={property.daysOnMarket ? `${property.daysOnMarket}` : 'N/A'}
-                  subtext="avg listing"
-                  icon="📅"
-                />
-                <MetricCard
-                  label="Health Score"
-                  value={`${healthScore.overall} / 100`}
-                  subtext={healthScore.label}
-                  icon="⚡"
+                  label="Price / sqft (est.)"
+                  value={property.avgPricePerSqft ? `$${property.avgPricePerSqft}` : 'N/A'}
+                  source="Regional benchmark · KF/CBRE 2024"
                 />
               </>
             )}
           </div>
         </div>
 
-        {/* ── SECTION 2: Health score + price trend ─────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <HealthScoreGauge score={healthScore} />
-          <div className="lg:col-span-2">
-            <PriceHistoryChart
-              data={property.priceHistory}
-              title={hasZillow && isResidential ? `Median Home Value — ${property.metro}` : 'Avg Price / sqft — 24-Month Trend'}
-              unit="$"
-              color="#8B1C13"
-            />
-          </div>
-        </div>
-
-        {/* ── SECTION 3: Zillow live data (US residential only) ─── */}
+        {/* ── Zillow charts — only when real data exists ── */}
         {hasZillow && isResidential && (
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <p className="label-upper">Live Market Data — Zillow Research</p>
-              <span className="tag tag-accent" style={{ fontSize: '0.6rem' }}>Updated Monthly</span>
-              <span className="tag tag-outline" style={{ fontSize: '0.6rem' }}>{property.metro}</span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <MetricCard
-                label="ZHVI — Median Home Value"
-                value={property.medianPrice ? formatCurrency(property.medianPrice, 'USD', true) : 'N/A'}
-                change={priceYoY}
-                subtext={`As of ${property.lastUpdated?.slice(0, 7)}`}
-                icon="🏠"
-                highlight
+            <p className="label-upper">Price &amp; Rent Trends — Zillow Research</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <PriceHistoryChart
+                data={property.priceHistory}
+                title={`Median Home Value · ${property.metro}`}
+                unit="$"
+                color="#8B1C13"
               />
-              <MetricCard
-                label="ZORI — Median Monthly Rent"
-                value={property.medianRent ? `$${property.medianRent.toLocaleString()}` : 'N/A'}
-                subtext="All home types"
-                icon="🏘️"
-              />
-              <MetricCard
-                label="Gross Rental Yield"
-                value={property.rentalYield ? `${property.rentalYield.toFixed(1)}%` : 'N/A'}
-                subtext="Annual rent ÷ home value"
-                icon="💹"
-              />
-            </div>
-
-            {property.rentHistory && property.rentHistory.length > 1 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <PriceHistoryChart
-                  data={property.priceHistory}
-                  title="Median Home Value — 24 Months (ZHVI)"
-                  unit="$"
-                  color="#8B1C13"
-                />
+              {property.rentHistory && property.rentHistory.length > 1 && (
                 <PriceHistoryChart
                   data={property.rentHistory}
-                  title="Median Monthly Rent — 24 Months (ZORI)"
+                  title={`Median Monthly Rent · ${property.metro}`}
                   unit="$"
                   color="#1a1514"
                 />
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
 
-        {/* ── SECTION 4: Comparable markets ─────────────────────── */}
-        <ComparableMarketsChart
-          data={comparables}
-          currentCity={city.name}
-          currentValue={property.avgPricePerSqft ?? 0}
-        />
-
-        {/* ── SECTION 5: Investment metrics ─────────────────────── */}
-        <div>
-          <p className="label-upper mb-3">Investment Metrics</p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <MetricCard label="Cap Rate" value={property.capRate ? `${property.capRate.toFixed(1)}%` : 'N/A'} icon="🏦"/>
-            <MetricCard label="Gross Yield" value={property.rentalYield ? `${property.rentalYield.toFixed(1)}%` : 'N/A'} icon="💹"/>
-            <MetricCard label="Vacancy Rate" value={property.vacancyRate ? `${property.vacancyRate.toFixed(1)}%` : 'N/A'} icon="🏗️"/>
-            <MetricCard label="Health Score" value={`${healthScore.overall} / 100`} subtext={healthScore.label} icon="⚡"/>
-          </div>
-        </div>
-
-        {/* ── SECTION 6: FRED (US only) ─────────────────────────── */}
+        {/* ── FRED mortgage data — US only ─────────────── */}
         {economic.fred && (
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <p className="label-upper">Mortgage &amp; Credit — FRED (St. Louis Fed)</p>
-              <span className="tag tag-accent" style={{ fontSize: '0.6rem' }}>Updated Weekly</span>
+              <span className="tag tag-accent" style={{ fontSize: '0.6rem' }}>Live</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <PriceHistoryChart
+                data={economic.fred.mortgageRateHistory}
+                title="30-Year Fixed Mortgage Rate"
+                unit="%"
+                color="#8B1C13"
+              />
+              <PriceHistoryChart
+                data={economic.fred.homePriceIndex}
+                title="Case-Shiller National Home Price Index"
+                unit="$"
+                color="#1a1514"
+              />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <MetricCard
                 label="30-Yr Mortgage Rate"
                 value={economic.fred.mortgageRate !== null ? `${economic.fred.mortgageRate.toFixed(2)}%` : 'N/A'}
-                subtext="Current weekly avg"
-                icon="🏦"
+                source="FRED MORTGAGE30US · weekly"
                 highlight
               />
               <MetricCard
@@ -354,113 +328,75 @@ function AnalysisContent() {
                 value={economic.fred.homePriceIndex.length > 0
                   ? economic.fred.homePriceIndex[economic.fred.homePriceIndex.length - 1].value.toFixed(1)
                   : 'N/A'}
-                subtext="National home price index"
-                icon="📈"
+                source="FRED CSUSHPINSA · monthly"
               />
               <MetricCard
                 label="Housing Starts"
                 value={economic.fred.housingStarts.length > 0
                   ? `${economic.fred.housingStarts[economic.fred.housingStarts.length - 1].value.toFixed(0)}K`
                   : 'N/A'}
-                subtext="Monthly units (annualized)"
-                icon="🏗️"
-              />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <PriceHistoryChart
-                data={economic.fred.mortgageRateHistory}
-                title="30-Year Mortgage Rate — 52 Weeks (FRED)"
-                unit="%"
-                color="#8B1C13"
-              />
-              <PriceHistoryChart
-                data={economic.fred.homePriceIndex}
-                title="Case-Shiller Home Price Index — 24 Months (FRED)"
-                unit="$"
-                color="#1a1514"
+                source="FRED HOUST · annualized monthly"
               />
             </div>
           </div>
         )}
 
-        {/* ── SECTION 7: Insights ───────────────────────────────── */}
+        {/* ── Comparable markets ───────────────────────── */}
+        <ComparableMarketsChart
+          data={comparables}
+          currentCity={city.name}
+          currentValue={property.avgPricePerSqft ?? 0}
+        />
+
+        {/* ── Insights ─────────────────────────────────── */}
         <InsightsPanel insights={insights} risks={risks} opportunities={opportunities} />
 
-        {/* ── SECTION 8: Economic context (supporting) ─────────── */}
-        <details className="group">
-          <summary className="cursor-pointer flex items-center gap-2 label-upper py-2 select-none" style={{ color: 'var(--text-muted)' }}>
-            <svg className="w-3.5 h-3.5 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/>
-            </svg>
-            Country Economic Context
-          </summary>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-            <EconomicChart
-              data={economic.gdpHistory}
-              title="GDP Growth Rate (% YoY)"
-            />
-            <div className="card p-6 flex flex-col gap-4">
-              <p className="label-upper">Country Economic Profile</p>
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { label: 'Country', value: city.country },
-                  { label: 'Population', value: economic.population ? formatNumber(economic.population, true) : 'N/A' },
-                  { label: 'GDP Per Capita', value: economic.gdpPerCapita ? formatCurrency(economic.gdpPerCapita, 'USD', true) : 'N/A' },
-                  { label: 'GDP Growth', value: economic.gdpGrowth !== null ? formatPercent(economic.gdpGrowth) : 'N/A' },
-                  { label: 'Inflation', value: economic.inflation !== null ? formatPercent(economic.inflation) : 'N/A' },
-                  { label: 'Data Year', value: economic.year.toString() },
-                ].map(({ label, value }) => (
-                  <div key={label}>
-                    <p className="label-upper mb-1">{label}</p>
-                    <p className="text-sm font-semibold" style={{ fontFamily: 'var(--font-playfair)', color: 'var(--text)' }}>{value}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-2 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
-                <p className="label-upper">Source: World Bank Open Data API</p>
-              </div>
+        {/* ── Economic context — World Bank ────────────── */}
+        <div className="space-y-4">
+          <p className="label-upper">Country Economic Context — World Bank {economic.year}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <EconomicChart data={economic.gdpHistory} title="GDP Growth Rate (% YoY)" />
+            <div className="card p-6 grid grid-cols-2 gap-4">
+              {[
+                { label: 'Country', value: city.country },
+                { label: 'Population', value: economic.population ? formatNumber(economic.population, true) : 'N/A' },
+                { label: 'GDP Per Capita', value: economic.gdpPerCapita ? formatCurrency(economic.gdpPerCapita, 'USD', true) : 'N/A' },
+                { label: 'GDP Growth', value: economic.gdpGrowth !== null ? formatPercent(economic.gdpGrowth) : 'N/A' },
+                { label: 'Inflation', value: economic.inflation !== null ? formatPercent(economic.inflation) : 'N/A' },
+                { label: 'Data Year', value: economic.year.toString() },
+              ].map(({ label, value }) => (
+                <div key={label}>
+                  <p className="label-upper mb-1">{label}</p>
+                  <p className="text-sm font-semibold" style={{ fontFamily: 'var(--font-playfair)', color: 'var(--text)' }}>{value}</p>
+                </div>
+              ))}
             </div>
           </div>
-        </details>
+        </div>
 
-        {/* ── Data sources footer ───────────────────────────────── */}
-        <div className="card p-5 mt-2">
+        {/* ── Data sources ─────────────────────────────── */}
+        <div className="card p-5">
           <p className="label-upper mb-3">Data Sources</p>
           <div className="flex flex-wrap gap-2">
             {[
               ...(hasZillow && isResidential ? [
-                { icon: '🏠', label: 'Zillow Research — ZHVI', sublabel: 'Median home values by metro — updated monthly', url: 'https://www.zillow.com/research/data/' },
-                { icon: '🏘️', label: 'Zillow Research — ZORI', sublabel: 'Observed rent index by metro — updated monthly', url: 'https://www.zillow.com/research/data/' },
+                { label: 'Zillow Research — ZHVI', sub: 'Median home values by metro · monthly', url: 'https://www.zillow.com/research/data/' },
+                { label: 'Zillow Research — ZORI', sub: 'Observed rent index by metro · monthly', url: 'https://www.zillow.com/research/data/' },
               ] : [
-                { icon: '🏢', label: 'Knight Frank Global Report', sublabel: 'Commercial benchmarks — 2024', url: 'https://www.knightfrank.com/research' },
-                { icon: '📊', label: 'CBRE Market Outlook', sublabel: 'Industrial & office benchmarks — 2024', url: 'https://www.cbre.com/insights/books/global-real-estate-market-outlook-2024' },
+                { label: 'Knight Frank / CBRE / JLL', sub: 'Regional property benchmarks · 2024', url: 'https://www.knightfrank.com/research' },
               ]),
-              { icon: '🏦', label: 'FRED — St. Louis Fed', sublabel: 'Mortgage rates, housing index — updated weekly', url: 'https://fred.stlouisfed.org/' },
-              { icon: '📡', label: 'World Bank Open Data', sublabel: 'GDP, inflation, population — updated annually', url: 'https://data.worldbank.org/' },
-              { icon: '🗺️', label: 'OpenStreetMap Nominatim', sublabel: 'Global city geocoding — live', url: 'https://nominatim.openstreetmap.org/' },
-              { icon: '🌐', label: 'JLL Global Research', sublabel: 'Retail & residential benchmarks — 2024', url: 'https://www.jll.com/en/trends-and-insights/research' },
-            ].map(({ icon, label, sublabel, url }) => (
-              <a
-                key={label}
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-start gap-2 px-3 py-2 rounded-lg transition-all group"
-                style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
-              >
-                <span className="text-base mt-0.5">{icon}</span>
-                <div>
-                  <p className="text-xs font-medium group-hover:underline" style={{ color: 'var(--text)' }}>{label} ↗</p>
-                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{sublabel}</p>
-                </div>
+              { label: 'FRED — St. Louis Fed', sub: 'Mortgage rates, HPI, housing starts · weekly', url: 'https://fred.stlouisfed.org/' },
+              { label: 'World Bank Open Data', sub: 'GDP, inflation, population · annual', url: 'https://data.worldbank.org/' },
+              { label: 'OpenStreetMap Nominatim', sub: 'City geocoding · live', url: 'https://nominatim.openstreetmap.org/' },
+            ].map(({ label, sub, url }) => (
+              <a key={label} href={url} target="_blank" rel="noopener noreferrer"
+                className="flex flex-col gap-0.5 px-3 py-2 rounded-lg transition-all hover:opacity-80"
+                style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+                <p className="text-xs font-semibold" style={{ color: 'var(--text)' }}>{label} ↗</p>
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{sub}</p>
               </a>
             ))}
           </div>
-          <p className="text-xs mt-3" style={{ color: 'var(--text-muted)' }}>
-            {hasZillow && isResidential
-              ? `Property values sourced directly from Zillow Research public data for the ${property.metro} metro area. Non-residential market types use calibrated regional benchmarks.`
-              : 'Property price data uses regional benchmarks calibrated by GDP per capita from Knight Frank, CBRE, and JLL 2024 reports.'}
-          </p>
         </div>
 
       </div>

@@ -3,11 +3,11 @@ interface Props {
   value: string | number;
   change?: number | null;
   subtext?: string;
-  icon?: string;
+  source?: string;
   highlight?: boolean;
 }
 
-export default function MetricCard({ label, value, change, subtext, highlight }: Props) {
+export default function MetricCard({ label, value, change, subtext, source, highlight }: Props) {
   return (
     <div
       className="card card-hover p-5 flex flex-col gap-2"
@@ -23,6 +23,11 @@ export default function MetricCard({ label, value, change, subtext, highlight }:
         </p>
       )}
       {subtext && <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{subtext}</p>}
+      {source && (
+        <p className="text-xs mt-auto pt-1" style={{ color: 'var(--text-muted)', borderTop: '1px solid var(--border)', opacity: 0.7 }}>
+          {source}
+        </p>
+      )}
     </div>
   );
 }

@@ -110,39 +110,12 @@ const DEFAULT_BASELINE = {
   land:        { price: 60,  yield: 3.0, vacancy: 0, dom: 200 },
 };
 
-function generatePriceHistory(basePrice: number, months = 24): PriceDataPoint[] {
-  const points: PriceDataPoint[] = [];
-  let price = basePrice * 0.88;
-  const now = new Date();
-
-  for (let i = months; i >= 0; i--) {
-    const d = new Date(now);
-    d.setMonth(d.getMonth() - i);
-    const drift = (Math.random() - 0.42) * 0.02;
-    price = price * (1 + drift);
-    points.push({
-      period: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
-      value: Math.round(price * 100) / 100,
-    });
-  }
-  return points;
-}
-
 export async function getPropertyMarketData(
   countryCode: string,
   marketType: MarketType,
   gdpPerCapita: number | null,
   cityName: string
 ): Promise<PropertyMarketData> {
-  // Try RapidAPI Zillow (US only) if configured
-  if (countryCode === 'US' && process.env.RAPIDAPI_KEY) {
-    try {
-      return await fetchZillowData(cityName, marketType);
-    } catch {
-      // fall through to baseline
-    }
-  }
-
   const baseline = REGIONAL_BASELINES[countryCode]?.[marketType] ?? DEFAULT_BASELINE[marketType];
 
   // Adjust price by GDP per capita relative to US (~$65k)
@@ -152,28 +125,18 @@ export async function getPropertyMarketData(
   }
 
   const adjustedPrice = Math.round(baseline.price * priceMultiplier);
-  const priceHistory = generatePriceHistory(adjustedPrice);
-  const lastPoint = priceHistory[priceHistory.length - 1];
-  const prevYearPoint = priceHistory[Math.max(0, priceHistory.length - 13)];
-  const yoyChange = ((lastPoint.value - prevYearPoint.value) / prevYearPoint.value) * 100;
 
   return {
     avgPricePerSqft: adjustedPrice,
-    medianPrice: adjustedPrice * (marketType === 'residential' ? 1200 : marketType === 'industrial' ? 50000 : 8000),
-    priceHistory,
+    medianPrice: null, // only set from live sources (Zillow)
+    priceHistory: [],  // only populated from live sources (Zillow)
     daysOnMarket: baseline.dom,
     inventory: null,
-    rentalYield: baseline.yield + (Math.random() - 0.5) * 0.5,
+    rentalYield: baseline.yield,
     vacancyRate: baseline.vacancy,
     capRate: baseline.yield - 1.2,
-    source: 'Regional market benchmarks (Knight Frank / CBRE / JLL 2024)',
+    source: `Regional benchmark — ${countryCode} ${marketType} (Knight Frank / CBRE / JLL 2024)`,
     lastUpdated: new Date().toISOString(),
     isEstimated: true,
   };
-}
-
-async function fetchZillowData(city: string, marketType: MarketType): Promise<PropertyMarketData> {
-  // Placeholder for RapidAPI Zillow integration
-  // Requires RAPIDAPI_KEY env var
-  throw new Error('Zillow API not configured');
 }
