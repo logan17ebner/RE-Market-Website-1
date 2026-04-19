@@ -3,8 +3,9 @@ import { getEconomicIndicators } from '@/lib/apis/worldbank';
 import { getPropertyMarketData } from '@/lib/apis/propertyData';
 import { computeHealthScore, generateInsights } from '@/lib/apis/insights';
 import { getUSHousingData } from '@/lib/apis/fred';
+import { getZillowData } from '@/lib/apis/zillow';
 import { classifyCity } from '@/lib/apis/cityClassifier';
-import { AnalysisReport, CityClass, CityResult, MarketType, ComparableMarket } from '@/lib/types';
+import { AnalysisReport, CityClass, CityResult, MarketType, ComparableMarket, PropertyMarketData } from '@/lib/types';
 
 interface ComparableEntry extends ComparableMarket {
   cityClass: CityClass[];  // which city classes this comp is good for
@@ -223,9 +224,12 @@ export async function POST(req: NextRequest) {
 
     const isUS = city.countryCode === 'US';
 
-    const [economic, fredData] = await Promise.all([
+    const { cityClass, nearestMajor } = classifyCity(city.lat, city.lon, city.population ?? null, null);
+
+    const [economic, fredData, zillowData] = await Promise.all([
       getEconomicIndicators(city.countryCode.toLowerCase()),
       isUS ? getUSHousingData() : Promise.resolve(null),
+      isUS ? getZillowData(city.name, city.state ?? '', nearestMajor ?? undefined) : Promise.resolve(null),
     ]);
 
     // Attach FRED data to economic indicators for US cities
@@ -241,7 +245,7 @@ export async function POST(req: NextRequest) {
       };
     }
 
-    // Re-run property with gdpPerCapita for better calibration
+    // Property data: start with GDP-calibrated baseline, then overlay real Zillow data
     const propertyCalibrated = await getPropertyMarketData(
       city.countryCode,
       marketType,
@@ -249,15 +253,36 @@ export async function POST(req: NextRequest) {
       city.name
     );
 
-    const healthScore = computeHealthScore(economic, propertyCalibrated, marketType);
-    const { cityClass } = classifyCity(city.lat, city.lon, city.population ?? null, economic.gdpPerCapita);
+    const property: PropertyMarketData = { ...propertyCalibrated };
+
+    if (zillowData && marketType === 'residential') {
+      // Zillow ZHVI is median home value (absolute $); derive $/sqft using ~1,600 sqft median US home
+      const sqftEstimate = 1600;
+      property.medianPrice = zillowData.medianHomeValue;
+      property.avgPricePerSqft = Math.round(zillowData.medianHomeValue / sqftEstimate);
+      property.priceHistory = zillowData.priceHistory;
+      property.yoyChange = zillowData.yoyChange;
+      property.medianRent = zillowData.medianRent ?? undefined;
+      property.rentHistory = zillowData.rentHistory.length > 0 ? zillowData.rentHistory : undefined;
+      property.metro = zillowData.metro;
+      property.isEstimated = false;
+      property.source = `Zillow Research — ${zillowData.metro}`;
+      property.lastUpdated = zillowData.lastUpdated;
+      // Derive rental yield from ZORI if available
+      if (zillowData.medianRent && zillowData.medianHomeValue > 0) {
+        property.rentalYield = Math.round(((zillowData.medianRent * 12) / zillowData.medianHomeValue) * 1000) / 10;
+        property.capRate = Math.max(0, property.rentalYield - 1.5);
+      }
+    }
+
+    const healthScore = computeHealthScore(economic, property, marketType);
     const comparables = getComparables(city.name, marketType, cityClass, economic.gdpPerCapita);
 
     const partialReport = {
       config: { city, marketType },
       generatedAt: new Date().toISOString(),
       economic,
-      property: propertyCalibrated,
+      property,
       healthScore,
       comparables,
     };

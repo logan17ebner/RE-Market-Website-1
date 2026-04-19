@@ -70,6 +70,11 @@ export interface PropertyMarketData {
   rentalYield: number | null;
   vacancyRate: number | null;
   capRate: number | null;
+  // Live Zillow data (US cities only)
+  medianRent?: number;
+  rentHistory?: PriceDataPoint[];
+  metro?: string;
+  yoyChange?: number;
   source: string;
   lastUpdated: string;
   isEstimated: boolean;
