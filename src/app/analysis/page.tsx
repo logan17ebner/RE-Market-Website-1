@@ -265,7 +265,7 @@ function AnalysisContent() {
               <MetricCard
                 label="Housing Starts"
                 value={economic.fred.housingStarts.length > 0
-                  ? `${economic.fred.housingStarts[economic.fred.housingStarts.length - 1].value.toFixed(0)}K`
+                  ? (() => { const v = economic.fred.housingStarts[economic.fred.housingStarts.length - 1].value; return v >= 1000 ? `${(v / 1000).toFixed(1)}M` : `${v.toFixed(0)}K`; })()
                   : 'N/A'}
                 source="FRED HOUST · annualized"
               />
