@@ -114,7 +114,7 @@ function AnalysisContent() {
   const router = useRouter();
   const [report, setReport] = useState<AnalysisReport | null>(null);
   const [loadState, setLoadState] = useState<LoadState>('idle');
-  const [exporting, setExporting] = useState<null | 'pdf' | 'onepager'>(null);
+  const [exporting, setExporting] = useState(false);
   const [showCustomize, setShowCustomize] = useState(false);
   const [visible, setVisible] = useState<Record<Section, boolean>>(ALL_VISIBLE);
 
@@ -156,20 +156,11 @@ function AnalysisContent() {
 
   async function handleExportPDF() {
     if (!report) return;
-    setExporting('pdf');
+    setExporting(true);
     try {
       const { exportAnalysisPDF } = await import('@/lib/pdfExport');
       await exportAnalysisPDF(report, 'analysis-export');
-    } finally { setExporting(null); }
-  }
-
-  async function handleExportOnePager() {
-    if (!report) return;
-    setExporting('onepager');
-    try {
-      const { exportOnePager } = await import('@/lib/pdfExport');
-      await exportOnePager(report);
-    } finally { setExporting(null); }
+    } finally { setExporting(false); }
   }
 
   if (loadState === 'loading') return <LoadingScreen />;
@@ -224,13 +215,9 @@ function AnalysisContent() {
             >
               Customize
             </button>
-            <button onClick={handleExportOnePager} disabled={!!exporting} className="btn-outline px-3 py-2 text-xs hidden sm:flex items-center gap-1.5">
-              {exporting === 'onepager' ? <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg> : null}
-              One-Pager
-            </button>
-            <button onClick={handleExportPDF} disabled={!!exporting} className="btn-outline px-3 py-2 text-xs flex items-center gap-1.5">
-              {exporting === 'pdf' ? <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg> : null}
-              Full PDF
+            <button onClick={handleExportPDF} disabled={exporting} className="btn-outline px-3 py-2 text-xs flex items-center gap-1.5">
+              {exporting ? <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg> : null}
+              {exporting ? 'Exporting…' : 'Export PDF'}
             </button>
           </div>
         </div>

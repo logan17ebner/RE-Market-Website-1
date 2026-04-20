@@ -225,10 +225,11 @@ export async function POST(req: NextRequest) {
 
     const { cityClass, nearestMajor } = classifyCity(city.lat, city.lon, city.population ?? null, null);
 
-    const [economic, fredData, zillowData] = await Promise.all([
+    const [economic, fredData, zillowData, localInsights] = await Promise.all([
       getEconomicIndicators('us'),
       getUSHousingData(),
       getZillowData(city.name, city.state ?? '', nearestMajor ?? undefined),
+      getLocalInsights(city.name, city.state ?? ''),
     ]);
 
     const mortgageRate = fredData.mortgageRate.length > 0
@@ -278,7 +279,6 @@ export async function POST(req: NextRequest) {
     };
 
     const { insights, risks, opportunities } = generateInsights(partialReport);
-    const localInsights = await getLocalInsights(city.name, city.state ?? '');
 
     const report: AnalysisReport = {
       ...partialReport,
