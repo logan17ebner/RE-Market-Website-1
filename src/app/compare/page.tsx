@@ -4,13 +4,6 @@ import { Suspense, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import CitySearch from '@/components/CitySearch';
 import { AnalysisReport, CityResult } from '@/lib/types';
-import { formatCurrency } from '@/lib/utils';
-
-function healthColor(score: number) {
-  if (score >= 70) return '#2d7a4f';
-  if (score >= 55) return '#b47800';
-  return '#8B1C13';
-}
 
 interface MetricRow {
   label: string;
@@ -175,28 +168,12 @@ function CompareContent() {
         {/* Results */}
         {reportA && reportB && cityA && cityB && (
           <div className="space-y-8">
-            {/* Header */}
+            {/* Header — city names only, no comparative framing */}
             <div className="grid grid-cols-2 gap-4">
               {[{ r: reportA, c: cityA }, { r: reportB, c: cityB }].map(({ r, c }) => (
                 <div key={c.id} className="card p-5">
                   <p className="editorial-title text-2xl" style={{ color: 'var(--text)' }}>{c.name}</p>
                   <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{r.property.metro ?? c.displayName}</p>
-                  <div className="mt-3 flex items-center gap-2">
-                    <span
-                      className="text-lg font-bold"
-                      style={{ color: healthColor(r.healthScore.overall), fontFamily: 'var(--font-playfair)' }}
-                    >
-                      {r.healthScore.overall}
-                    </span>
-                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>/ 100 — {r.healthScore.label}</span>
-                  </div>
-                  {/* Mini health bar */}
-                  <div className="mt-2 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
-                    <div
-                      className="h-full rounded-full"
-                      style={{ width: `${r.healthScore.overall}%`, background: healthColor(r.healthScore.overall) }}
-                    />
-                  </div>
                 </div>
               ))}
             </div>
@@ -234,21 +211,68 @@ function CompareContent() {
               })}
             </div>
 
-            {/* Insights comparison */}
+            {/* Local intelligence — city-specific sourced insights */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {[{ r: reportA, c: cityA }, { r: reportB, c: cityB }].map(({ r, c }) => (
-                <div key={c.id} className="card p-5 space-y-3">
-                  <p className="label-upper" style={{ color: 'var(--text-muted)' }}>{c.name} — Key Insights</p>
-                  <ul className="space-y-2">
-                    {r.insights.slice(0, 3).map((ins, i) => (
-                      <li key={i} className="flex gap-2 items-start">
-                        <span className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--text-muted)', marginTop: 7 }}/>
-                        <span className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{ins}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+              {[{ r: reportA, c: cityA }, { r: reportB, c: cityB }].map(({ r, c }) => {
+                const local = r.localInsights ?? [];
+                const dataPoints = [
+                  r.property.medianPrice   && `Median home value: $${(r.property.medianPrice / 1000).toFixed(0)}K`,
+                  r.property.yoyChange != null && `YoY price change: ${r.property.yoyChange >= 0 ? '+' : ''}${r.property.yoyChange.toFixed(1)}%`,
+                  r.property.medianRent    && `Median rent: $${r.property.medianRent.toLocaleString()}/mo`,
+                  r.property.rentalYield   && `Gross yield: ${r.property.rentalYield.toFixed(1)}%`,
+                ].filter(Boolean) as string[];
+
+                return (
+                  <div key={c.id} className="card p-5 space-y-3">
+                    {local.length > 0 ? (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: 'var(--accent)' }} />
+                            <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: 'var(--accent)' }} />
+                          </span>
+                          <p className="label-upper">{c.name} — Local Intelligence</p>
+                        </div>
+                        <ul className="space-y-3">
+                          {local.slice(0, 4).map((item, i) => (
+                            <li key={i} className="flex gap-2 items-start">
+                              <span
+                                className="text-xs px-1.5 py-0.5 rounded flex-shrink-0 font-medium"
+                                style={{
+                                  background: item.type === 'risk' ? 'rgba(139,28,19,0.1)' : item.type === 'opportunity' ? 'rgba(45,122,79,0.1)' : 'rgba(26,21,20,0.07)',
+                                  color: item.type === 'risk' ? '#8B1C13' : item.type === 'opportunity' ? '#2d7a4f' : 'var(--text)',
+                                }}
+                              >
+                                {item.type}
+                              </span>
+                              <span className="flex-1 min-w-0">
+                                <span className="text-xs leading-relaxed block" style={{ color: 'var(--text-secondary)' }}>{item.text}</span>
+                                {item.url && (
+                                  <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-xs hover:underline" style={{ color: 'var(--accent)', opacity: 0.8 }}>
+                                    {item.source} ↗
+                                  </a>
+                                )}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    ) : (
+                      <>
+                        <p className="label-upper" style={{ color: 'var(--text-muted)' }}>{c.name} — Market Data</p>
+                        <ul className="space-y-2">
+                          {dataPoints.map((pt, i) => (
+                            <li key={i} className="flex gap-2 items-start">
+                              <span className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--text-muted)', marginTop: 7 }} />
+                              <span className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{pt}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

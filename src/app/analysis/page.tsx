@@ -7,7 +7,6 @@ import { formatCurrency, formatNumber, formatPercent } from '@/lib/utils';
 import MetricCard, { SourceInfo } from '@/components/analysis/MetricCard';
 import InsightsPanel from '@/components/analysis/InsightsPanel';
 import AlertsBanner from '@/components/analysis/AlertsBanner';
-import MarketMap from '@/components/analysis/MarketMap';
 import NeighborhoodBreakdown from '@/components/analysis/NeighborhoodBreakdown';
 import PriceHistoryChart from '@/components/charts/PriceHistoryChart';
 import EconomicChart from '@/components/charts/EconomicChart';
@@ -15,14 +14,13 @@ import ComparableMarketsChart from '@/components/charts/ComparableMarketsChart';
 
 type LoadState = 'idle' | 'loading' | 'done' | 'error';
 
-const SECTION_KEYS = ['keyIndicators', 'priceTrends', 'mortgage', 'comparables', 'map', 'neighborhood', 'insights', 'economic'] as const;
+const SECTION_KEYS = ['keyIndicators', 'priceTrends', 'mortgage', 'comparables', 'neighborhood', 'insights', 'economic'] as const;
 type Section = typeof SECTION_KEYS[number];
 const SECTION_LABELS: Record<Section, string> = {
   keyIndicators: 'Key Indicators',
   priceTrends:   'Price & Rent Trends',
   mortgage:      'Mortgage & Credit',
   comparables:   'Comparable Markets',
-  map:           'Market Map',
   neighborhood:  'Sub-Markets',
   insights:      'Insights',
   economic:      'Economic Context',
@@ -472,21 +470,6 @@ function AnalysisContent() {
             currentCity={city.name}
             currentValue={property.avgPricePerSqft ?? 0}
           />
-        )}
-
-        {/* ── Market Map ───────────────────────────────────── */}
-        {visible.map && (
-          <div className="space-y-3">
-            <p className="label-upper">Market Map</p>
-            <div className="relative">
-              <MarketMap
-                cityName={city.name}
-                cityLat={city.lat}
-                cityLon={city.lon}
-                comparables={comparables}
-              />
-            </div>
-          </div>
         )}
 
         {/* ── Sub-Markets ──────────────────────────────────── */}
