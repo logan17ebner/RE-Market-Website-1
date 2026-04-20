@@ -183,7 +183,7 @@ function AnalysisContent() {
   }
   if (!report) return null;
 
-  const { config, economic, property, comparables, insights, risks, opportunities } = report;
+  const { config, economic, property, comparables, insights, risks, opportunities, localInsights } = report;
   const { city } = config;
 
   const hasZillow = !!property.metro;
@@ -468,7 +468,7 @@ function AnalysisContent() {
 
         {/* ── Insights ─────────────────────────────────────── */}
         {visible.insights && (
-          <InsightsPanel insights={insights} risks={risks} opportunities={opportunities} />
+          <InsightsPanel insights={insights} risks={risks} opportunities={opportunities} localInsights={localInsights} />
         )}
 
         {/* ── Economic Context ─────────────────────────────── */}

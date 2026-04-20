@@ -5,6 +5,7 @@ import { computeHealthScore, generateInsights } from '@/lib/apis/insights';
 import { getUSHousingData } from '@/lib/apis/fred';
 import { getZillowData } from '@/lib/apis/zillow';
 import { classifyCity } from '@/lib/apis/cityClassifier';
+import { getLocalInsights } from '@/lib/apis/localInsights';
 import { AnalysisReport, CityClass, CityResult, MarketType, ComparableMarket, PropertyMarketData } from '@/lib/types';
 
 interface ComparableEntry extends ComparableMarket {
@@ -277,12 +278,14 @@ export async function POST(req: NextRequest) {
     };
 
     const { insights, risks, opportunities } = generateInsights(partialReport);
+    const localInsights = await getLocalInsights(city.name, city.state ?? '');
 
     const report: AnalysisReport = {
       ...partialReport,
       insights,
       risks,
       opportunities,
+      localInsights,
     };
 
     return NextResponse.json(report);

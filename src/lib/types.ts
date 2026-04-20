@@ -97,6 +97,13 @@ export interface ComparableMarket {
   healthScore: number;
 }
 
+export interface SourcedInsight {
+  text: string;
+  type: 'insight' | 'risk' | 'opportunity';
+  source?: string;
+  url?: string;
+}
+
 export interface AnalysisReport {
   config: MarketConfig;
   generatedAt: string;
@@ -107,4 +114,5 @@ export interface AnalysisReport {
   insights: string[];
   risks: string[];
   opportunities: string[];
+  localInsights?: SourcedInsight[];
 }
