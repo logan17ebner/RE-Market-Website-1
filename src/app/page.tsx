@@ -31,6 +31,7 @@ export default function HomePage() {
         <nav className="flex items-center gap-8 text-xs" style={{ color: 'var(--text-muted)', letterSpacing: '0.1em' }}>
           <span className="uppercase hidden sm:block">All 50 States</span>
           <span className="uppercase hidden sm:block">Residential</span>
+          <a href="/compare" className="uppercase hidden sm:block hover:opacity-70 transition-opacity">Compare Cities</a>
           <span className="tag tag-accent">Live Zillow + FRED</span>
         </nav>
       </header>
