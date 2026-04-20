@@ -3,23 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import CitySearch from '@/components/CitySearch';
-import MarketTypeSelector from '@/components/MarketTypeSelector';
-import { CityResult, MarketType } from '@/lib/types';
-import { getMarketTypeLabel } from '@/lib/utils';
-
-const SAMPLE_CITIES = [
-  { name: 'New York', flag: '🇺🇸' },
-  { name: 'London', flag: '🇬🇧' },
-  { name: 'Tokyo', flag: '🇯🇵' },
-  { name: 'Dubai', flag: '🇦🇪' },
-  { name: 'Sydney', flag: '🇦🇺' },
-  { name: 'Berlin', flag: '🇩🇪' },
-];
+import { CityResult } from '@/lib/types';
 
 export default function HomePage() {
   const router = useRouter();
   const [city, setCity] = useState<CityResult | null>(null);
-  const [marketType, setMarketType] = useState<MarketType>('residential');
   const [loading, setLoading] = useState(false);
 
   function handleAnalyze() {
@@ -27,129 +15,84 @@ export default function HomePage() {
     setLoading(true);
     const params = new URLSearchParams({
       city: encodeURIComponent(JSON.stringify(city)),
-      marketType,
+      marketType: 'residential',
     });
     router.push(`/analysis?${params.toString()}`);
   }
 
   return (
-    <main className="min-h-screen flex flex-col">
-      {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-slate-800/60">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-            </svg>
-          </div>
-          <span className="font-bold text-white tracking-tight">RE Market Intelligence</span>
-        </div>
-        <div className="flex items-center gap-4 text-sm text-slate-400">
-          <span className="hidden sm:block">Global Coverage</span>
-          <span className="hidden sm:block">6 Market Types</span>
-          <span className="px-3 py-1 rounded-full bg-green-500/10 text-green-400 border border-green-500/20 text-xs font-medium">
-            ● Live Data
-          </span>
-        </div>
+    <main className="min-h-screen flex flex-col" style={{ background: 'var(--bg)' }}>
+
+      {/* Nav */}
+      <header className="flex items-center justify-between px-8 py-5" style={{ borderBottom: '1px solid var(--border)' }}>
+        <span className="editorial-italic text-xl" style={{ color: 'var(--accent)' }}>
+          RE Market Intelligence
+        </span>
+        <nav className="flex items-center gap-8 text-xs" style={{ color: 'var(--text-muted)', letterSpacing: '0.1em' }}>
+          <span className="uppercase hidden sm:block">All 50 States</span>
+          <span className="uppercase hidden sm:block">Residential</span>
+          <span className="tag tag-accent">Live Zillow + FRED</span>
+        </nav>
       </header>
 
       {/* Hero */}
-      <section className="flex-1 flex flex-col items-center justify-center px-4 py-16">
-        <div className="w-full max-w-3xl">
-          <div className="flex justify-center mb-6">
-            <span className="px-4 py-1.5 rounded-full text-xs font-semibold bg-blue-500/10 border border-blue-500/20 text-blue-300 tracking-widest uppercase">
-              Institutional-Grade Market Analysis
-            </span>
-          </div>
+      <section className="flex-1 flex flex-col items-center justify-center px-6 py-20">
+        <div className="w-full max-w-xl">
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-center leading-tight mb-4">
-            Real Estate Intelligence
-            <br />
-            <span className="gradient-text">for Any City on Earth</span>
+          <p className="label-upper text-center mb-6">Residential Market Analysis</p>
+
+          <h1 className="editorial-title text-5xl sm:text-6xl text-center mb-6" style={{ color: 'var(--text)' }}>
+            Real Estate Intelligence<br />
+            for <span className="editorial-italic">Any U.S. City</span>
           </h1>
 
-          <p className="text-center text-slate-400 text-lg mb-10 max-w-xl mx-auto leading-relaxed">
-            Generate a comprehensive market analysis package using live World Bank economic data, regional benchmarks, and AI-powered insights — in seconds.
+          <p className="text-center text-sm leading-relaxed mb-12 max-w-lg mx-auto" style={{ color: 'var(--text-secondary)' }}>
+            Live Zillow home values and rents, FRED mortgage data, and comparable
+            market analysis — generated in seconds for any U.S. market.
           </p>
 
-          {/* Sample cities strip */}
-          <div className="flex flex-wrap justify-center gap-2 mb-8">
-            {SAMPLE_CITIES.map((c) => (
-              <span
-                key={c.name}
-                className="px-3 py-1 rounded-full text-xs bg-slate-800 border border-slate-700 text-slate-400"
-              >
-                {c.flag} {c.name}
-              </span>
-            ))}
-            <span className="px-3 py-1 rounded-full text-xs bg-slate-800 border border-slate-700 text-slate-500 italic">
-              + 10,000 cities
-            </span>
-          </div>
-
-          {/* Config card */}
-          <div className="card p-6 sm:p-8 space-y-7 shadow-2xl">
+          {/* Form card */}
+          <div className="card p-8 sm:p-10 space-y-8">
             <div>
-              <label className="block text-sm font-semibold text-slate-300 mb-2">
-                1. Search for a City
-              </label>
+              <p className="label-upper mb-3">Search for a U.S. City</p>
               <CitySearch onSelect={setCity} selected={city} />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-slate-300 mb-3">
-                2. Select Market Type
-              </label>
-              <MarketTypeSelector selected={marketType} onChange={setMarketType} />
             </div>
 
             <button
               onClick={handleAnalyze}
               disabled={!city || loading}
-              className="w-full py-4 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-500 active:bg-blue-700 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed transition-all duration-150 flex items-center justify-center gap-2 text-base"
+              className="btn-primary w-full py-4 flex items-center justify-center gap-3"
             >
               {loading ? (
                 <>
-                  <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
                   </svg>
-                  Loading Analysis…
+                  Generating Analysis…
                 </>
               ) : city ? (
-                `3. Generate Analysis → ${city.name} / ${getMarketTypeLabel(marketType)}`
+                `Generate Analysis → ${city.name}`
               ) : (
-                '3. Select a city to begin'
+                'Select a city to begin'
               )}
             </button>
           </div>
 
-          {/* Feature pills */}
-          <div className="flex flex-wrap justify-center gap-2 mt-8">
-            {[
-              '📊 24-Month Price Charts',
-              '🌍 World Bank Live Data',
-              '📈 Market Health Score',
-              '💹 Yield & Cap Rate Analysis',
-              '🏗️ Supply & Demand Metrics',
-              '⚖️ Comparable Markets',
-              '🔍 Risks & Opportunities',
-              '📄 PDF Export',
-            ].map((f) => (
-              <span
-                key={f}
-                className="text-xs text-slate-500 px-3 py-1.5 rounded-lg bg-slate-800/50 border border-slate-800"
-              >
-                {f}
-              </span>
+          {/* Feature strip */}
+          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mt-10">
+            {['Zillow Home Values', 'FRED Mortgage Data', 'Comparable Markets', 'Rental Yield', 'PDF Export'].map(f => (
+              <span key={f} className="label-upper">{f}</span>
             ))}
           </div>
         </div>
       </section>
 
-      <footer className="border-t border-slate-800/60 px-6 py-4 text-center text-xs text-slate-600">
-        Economic data from World Bank Open Data &amp; FRED (St. Louis Fed). City search via OpenStreetMap Nominatim.
-        Property benchmarks from Knight Frank, CBRE &amp; JLL 2024 global market reports. For informational purposes only.
+      {/* Footer */}
+      <footer className="px-8 py-5 text-center" style={{ borderTop: '1px solid var(--border)' }}>
+        <p className="text-xs" style={{ color: 'var(--text-muted)', letterSpacing: '0.04em' }}>
+          Data: Zillow Research (ZHVI/ZORI) · FRED St. Louis Fed · World Bank · OpenStreetMap — For informational purposes only
+        </p>
       </footer>
     </main>
   );
