@@ -1,5 +1,15 @@
 export type MarketType = 'residential' | 'commercial' | 'retail' | 'industrial' | 'office' | 'land';
 
+export type CityClass =
+  | 'global-gateway'   // NYC, London, Tokyo — pop >5M, financial hub
+  | 'major-metro'      // Chicago, Sydney, Berlin — pop 1-5M
+  | 'large-city'       // Atlanta, Denver, Lisbon — pop 300k-1M
+  | 'mid-city'         // pop 100k-300k, standalone
+  | 'suburb-primary'   // <30mi from global-gateway city
+  | 'suburb-secondary' // <30mi from major-metro city
+  | 'small-city'       // pop <100k, not a suburb
+  | 'emerging';        // lower-income country city
+
 export interface CityResult {
   id: string;
   name: string;
@@ -9,6 +19,8 @@ export interface CityResult {
   lat: number;
   lon: number;
   state?: string;
+  population?: number;
+  cityClass?: CityClass;
 }
 
 export interface MarketConfig {

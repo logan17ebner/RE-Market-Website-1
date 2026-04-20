@@ -38,9 +38,7 @@ export default function CitySearch({ onSelect, selected }: Props) {
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false);
     }
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
@@ -62,12 +60,10 @@ export default function CitySearch({ onSelect, selected }: Props) {
   return (
     <div ref={containerRef} className="relative w-full">
       <div className="relative">
-        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-          </svg>
-        </span>
+        <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: 'var(--text-muted)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
         <input
           ref={inputRef}
           type="text"
@@ -75,22 +71,20 @@ export default function CitySearch({ onSelect, selected }: Props) {
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => results.length > 0 && setOpen(true)}
           placeholder="Search any city in the world…"
-          className="w-full pl-12 pr-12 py-4 text-base bg-slate-800/60 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition"
+          className="w-full pl-11 pr-10 py-3.5 text-sm"
+          style={{ background: 'var(--bg)', border: '1px solid var(--border-strong)', borderRadius: 3, color: 'var(--text)' }}
           autoComplete="off"
         />
         {(query || selected) && (
-          <button
-            onClick={handleClear}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
+          <button onClick={handleClear} className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-muted)' }}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12"/>
             </svg>
           </button>
         )}
         {loading && (
-          <span className="absolute right-4 top-1/2 -translate-y-1/2">
-            <svg className="w-5 h-5 animate-spin text-blue-400" fill="none" viewBox="0 0 24 24">
+          <span className="absolute right-3 top-1/2 -translate-y-1/2">
+            <svg className="w-4 h-4 animate-spin" style={{ color: 'var(--accent)' }} fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
             </svg>
@@ -99,23 +93,18 @@ export default function CitySearch({ onSelect, selected }: Props) {
       </div>
 
       {open && results.length > 0 && (
-        <ul className="absolute z-50 w-full mt-2 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl overflow-hidden">
+        <ul className="absolute z-50 w-full mt-1 overflow-hidden shadow-lg" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-strong)', borderRadius: 3 }}>
           {results.map((city) => (
-            <li key={city.id}>
-              <button
-                className="w-full text-left px-4 py-3 hover:bg-slate-700/80 transition flex items-center gap-3"
-                onClick={() => handleSelect(city)}
-              >
-                <span className="text-blue-400 shrink-0">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                  </svg>
-                </span>
-                <div>
-                  <p className="text-white text-sm font-medium">{city.name}</p>
-                  <p className="text-slate-400 text-xs">{city.displayName}</p>
+            <li key={city.id} style={{ borderBottom: '1px solid var(--border)' }}>
+              <button className="w-full text-left px-4 py-3 flex items-center gap-3 hover:opacity-70 transition-opacity" onClick={() => handleSelect(city)}>
+                <svg className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--accent)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                </svg>
+                <div className="flex-1">
+                  <p className="text-sm font-medium" style={{ color: 'var(--text)', fontFamily: 'var(--font-playfair)' }}>{city.name}</p>
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{city.displayName}</p>
                 </div>
-                <span className="ml-auto text-xs text-slate-500 uppercase tracking-wide">{city.countryCode}</span>
+                <span className="label-upper">{city.countryCode}</span>
               </button>
             </li>
           ))}
@@ -123,7 +112,7 @@ export default function CitySearch({ onSelect, selected }: Props) {
       )}
 
       {open && !loading && query.length >= 2 && results.length === 0 && (
-        <div className="absolute z-50 w-full mt-2 bg-slate-800 border border-slate-700 rounded-xl p-4 text-slate-400 text-sm">
+        <div className="absolute z-50 w-full mt-1 px-4 py-3 text-sm" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-strong)', borderRadius: 3, color: 'var(--text-muted)' }}>
           No cities found for &quot;{query}&quot;
         </div>
       )}

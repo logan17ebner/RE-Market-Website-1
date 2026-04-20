@@ -21,17 +21,16 @@ async function fetchSeries(seriesId: string, limit = 24): Promise<PriceDataPoint
   }
 }
 
-export async function getUSHousingData() {
-  const [homePriceIndex, mortgageRate, housingStarts] = await Promise.all([
-    fetchSeries('CSUSHPINSA', 24),   // Case-Shiller Home Price Index
-    fetchSeries('MORTGAGE30US', 52), // 30-year fixed mortgage rate
-    fetchSeries('HOUST', 24),        // Housing starts (thousands)
+export async function getUSHousingData(): Promise<{
+  mortgageRate: PriceDataPoint[];
+  homePriceIndex: PriceDataPoint[];
+  housingStarts: PriceDataPoint[];
+}> {
+  const [mortgageRate, homePriceIndex, housingStarts] = await Promise.all([
+    fetchSeries('MORTGAGE30US', 52), // 30-year fixed mortgage rate (weekly)
+    fetchSeries('CSUSHPINSA', 24),   // Case-Shiller Home Price Index (monthly)
+    fetchSeries('HOUST', 24),        // Housing starts (monthly, thousands)
   ]);
 
-  return { homePriceIndex, mortgageRate, housingStarts };
-}
-
-export async function getMortgageRate(): Promise<number | null> {
-  const data = await fetchSeries('MORTGAGE30US', 5);
-  return data.length > 0 ? data[data.length - 1].value : null;
+  return { mortgageRate, homePriceIndex, housingStarts };
 }
