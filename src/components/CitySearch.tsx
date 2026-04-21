@@ -70,7 +70,7 @@ export default function CitySearch({ onSelect, selected }: Props) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => results.length > 0 && setOpen(true)}
-          placeholder="Search any city in the world…"
+          placeholder="Search any U.S. city…"
           className="w-full pl-11 pr-10 py-3.5 text-sm"
           style={{ background: 'var(--bg)', border: '1px solid var(--border-strong)', borderRadius: 3, color: 'var(--text)' }}
           autoComplete="off"
