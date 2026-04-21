@@ -25,8 +25,8 @@ export default function HomePage() {
 
       {/* Nav */}
       <header className="flex items-center justify-between px-8 py-5" style={{ borderBottom: '1px solid var(--border)' }}>
-        <span className="editorial-italic text-xl" style={{ color: 'var(--accent)' }}>
-          RE Market Intelligence
+        <span className="editorial-italic text-2xl font-semibold" style={{ color: 'var(--accent)', fontFamily: 'var(--font-playfair)' }}>
+          Parcel
         </span>
         <nav className="flex items-center gap-8 text-xs" style={{ color: 'var(--text-muted)', letterSpacing: '0.1em' }}>
           <span className="uppercase hidden sm:block">All 50 States</span>
@@ -43,8 +43,8 @@ export default function HomePage() {
           <p className="label-upper text-center mb-6">Residential Market Analysis</p>
 
           <h1 className="editorial-title text-5xl sm:text-6xl text-center mb-6" style={{ color: 'var(--text)' }}>
-            Real Estate Intelligence<br />
-            for <span className="editorial-italic">Any U.S. City</span>
+            Know the market<br />
+            before you <span className="editorial-italic">make a move</span>
           </h1>
 
           <p className="text-center text-sm leading-relaxed mb-12 max-w-lg mx-auto" style={{ color: 'var(--text-secondary)' }}>
@@ -92,7 +92,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="px-8 py-5 text-center" style={{ borderTop: '1px solid var(--border)' }}>
         <p className="text-xs" style={{ color: 'var(--text-muted)', letterSpacing: '0.04em' }}>
-          Data: Zillow Research (ZHVI/ZORI) · FRED St. Louis Fed · World Bank · OpenStreetMap — For informational purposes only
+          Parcel · Data: Zillow Research (ZHVI/ZORI) · FRED St. Louis Fed · World Bank — For informational purposes only
         </p>
       </footer>
     </main>

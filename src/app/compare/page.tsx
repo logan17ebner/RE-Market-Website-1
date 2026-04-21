@@ -129,7 +129,7 @@ function CompareContent() {
       {/* Nav */}
       <header className="flex items-center justify-between px-8 py-5" style={{ borderBottom: '1px solid var(--border)' }}>
         <button onClick={() => router.push('/')} className="editorial-italic text-xl" style={{ color: 'var(--accent)' }}>
-          RE Market Intelligence
+          Parcel
         </button>
         <span className="label-upper hidden sm:block">City Comparison</span>
       </header>

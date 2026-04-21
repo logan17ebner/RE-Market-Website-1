@@ -7,8 +7,8 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter", weight: ["30
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair", style: ["normal", "italic"], weight: ["400", "500", "600", "700"] });
 
 export const metadata: Metadata = {
-  title: "RE Market Intelligence — Global Real Estate Analysis",
-  description: "Institutional-grade real estate market analysis for any city in the world.",
+  title: "Parcel — US Residential Market Intelligence",
+  description: "Live Zillow home values, FRED mortgage data, and local market analysis for any US city.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
